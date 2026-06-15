@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: margem
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SQLITE_DB_PATH
+        value: /var/data/margem.sqlite
+    disk:
+      name: margem-data
+      mountPath: /var/data
+      sizeGB: 1
