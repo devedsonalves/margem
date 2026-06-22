@@ -1,91 +1,374 @@
 # 📚 Gerenciador de Biblioteca Pessoal (Margem)
 
-O **Margem** é um sistema fullstack para gerenciar um acervo pessoal de livros. O objetivo é permitir que o usuário faça o controle de sua coleção por meio de um CRUD operacional completo, estruturando o acervo de forma organizada por autores e editoras.
+O **Margem** é uma API Node.js com Express para gerenciar um acervo pessoal de livros. O sistema organiza livros por autores e editoras e permite acompanhar o progresso de leitura de cada obra.
 
-## 🚀 Funcionalidades Principais (CRUD)
+## 🚀 Como executar
 
-* **[C] Cadastrar Livro**: Vincular uma nova obra a um Autor (`Author`) e a uma Editora (`Publisher`).
-* **[R] Listar Acervo**: Visualizar todos os livros cadastrados trazendo os dados completos de quem escreveu e quem publicou.
-* **[U] Atualizar Livro**: Modificar dados do livro ou o seu status de leitura atual.
-* **[D] Remover Livro**: Excluir uma obra do acervo pessoal.
+```bash
+npm install
+npm run dev
+```
+
+Por padrão, a API fica disponível em:
+
+```text
+http://localhost:3000
+```
+
+## ✅ Funcionalidades principais
+
+* **Autores**: cadastrar, listar, consultar, atualizar e remover autores.
+* **Editoras**: cadastrar, listar, consultar, atualizar e remover editoras.
+* **Livros**: cadastrar, listar, filtrar por autor/editora, consultar, atualizar e remover livros.
+* **Acompanhamento de leitura**: registrar status, página atual, datas e observações de leitura.
 
 ---
 
-## 💾 Modelagem do Banco de Dados (4 Classes de Domínio)
+## 💾 Modelagem do banco de dados
 
-O domínio do projeto foi modelado com **4 entidades interdependentes**, mapeadas em inglês para seguir as boas práticas de desenvolvimento de software.
+O domínio do projeto possui **4 entidades principais**, mapeadas em inglês no banco de dados.
 
-```
+```text
 ┌──────────────────┐             ┌──────────────────┐
-│     AUTHOR       │             │    PUBLISHER     │
+│     AUTHORS      │             │    PUBLISHERS    │
 ├──────────────────┤             ├──────────────────┤
 │ id (PK)          │             │ id (PK)          │
 │ name             │             │ name             │
+│ country          │             │ headquarters     │
+│ bio              │             │ founded_year     │
+│ created_at       │             │ created_at       │
 └─────────┬────────┘             └────────┬─────────┘
           │                               │
           │ 1                             │ 1
           │                               │
           │             * ┌───────────────▼──┐
-          └──────────────►│      BOOK        │
+          └──────────────►│      BOOKS       │
                           ├──────────────────┤
                           │ id (PK)          │
                           │ title            │
+                          │ genre            │
+                          │ pages            │
+                          │ isbn             │
                           │ publication_year │
-                          │ reading_status   │
                           │ author_id (FK)   │
                           │ publisher_id (FK)│
-                          │ user_id (FK)     │
-                          └───────────────▲──┘
-                                          │ *
-                                          │ 
-                                        1 │
-                                 ┌────────┴─────────┐
-                                 │      USER        │
+                          │ created_at       │
+                          └───────────────┬──┘
+                                          │ 1
+                                          │
+                                        * │
+                                 ┌────────▼─────────┐
+                                 │ READING_TRACKERS │
                                  ├──────────────────┤
                                  │ id (PK)          │
-                                 │ name             │
-                                 │ email            │
+                                 │ book_id (FK)     │
+                                 │ status           │
+                                 │ current_page     │
+                                 │ started_at       │
+                                 │ finished_at      │
+                                 │ notes            │
+                                 │ created_at       │
                                  └──────────────────┘
-
 ```
 
-### Dicionário de Dados
+### Dicionário de dados
 
-#### 1. Tabela: `users`
+#### 1. Tabela: `authors`
 
-Dono da biblioteca pessoal que gerencia o acervo.
+Autores das obras cadastradas no acervo.
 
-* `id` (PK): Identificador único (UUID ou INT).
-* `name` (VARCHAR): Nome do usuário.
-* `email` (VARCHAR): Email único para acesso ao sistema.
+* `id` (PK): identificador único do autor.
+* `name` (TEXT): nome completo ou pseudônimo do autor.
+* `country` (TEXT): país de origem.
+* `bio` (TEXT): breve biografia.
+* `created_at` (TEXT): data de criação do registro.
 
-#### 2. Tabela: `authors`
+#### 2. Tabela: `publishers`
 
-Escritores das obras contidas na biblioteca.
+Editoras responsáveis pela publicação dos livros.
 
-* `id` (PK): Identificador único do autor.
-* `name` (VARCHAR): Nome completo ou pseudônimo do escritor.
+* `id` (PK): identificador único da editora.
+* `name` (TEXT): nome da editora. Deve ser único.
+* `headquarters` (TEXT): sede da editora.
+* `founded_year` (INTEGER): ano de fundação.
+* `created_at` (TEXT): data de criação do registro.
 
-#### 3. Tabela: `publishers`
+#### 3. Tabela: `books`
 
-Empresas responsáveis pela publicação dos livros (Editoras).
+Entidade central do acervo, vinculada a um autor e a uma editora.
 
-* `id` (PK): Identificador único da editora.
-* `name` (VARCHAR): Nome fantasia da publicadora.
+* `id` (PK): identificador único do livro.
+* `title` (TEXT): título do livro.
+* `genre` (TEXT): gênero literário.
+* `pages` (INTEGER): total de páginas. Deve ser maior que zero.
+* `isbn` (TEXT): ISBN do livro. Deve ser único.
+* `publication_year` (INTEGER): ano de publicação.
+* `author_id` (FK): vínculo obrigatório com `authors`.
+* `publisher_id` (FK): vínculo obrigatório com `publishers`.
+* `created_at` (TEXT): data de criação do registro.
 
-#### 4. Tabela: `books`
+#### 4. Tabela: `reading_trackers`
 
-A entidade central do CRUD, que unifica as relações do domínio.
+Registros de acompanhamento de leitura associados a livros.
 
-* `id` (PK): Identificador único da obra.
-* `title` (VARCHAR): Título do livro.
-* `publication_year` (INT): Ano em que o livro foi lançado.
-* `reading_status` (VARCHAR): Estado atual da leitura ('WANT_TO_READ', 'READING', 'READ').
-* `author_id` (FK): Vincula o livro obrigatoriamente a um registro em `authors`.
-* `publisher_id` (FK): Vincula o livro obrigatoriamente a um registro em `publishers`.
-* `user_id` (FK): Vincula o livro ao usuário dono da coleção (`users`).
+* `id` (PK): identificador único do acompanhamento.
+* `book_id` (FK): vínculo obrigatório com `books`.
+* `status` (TEXT): status da leitura. Valores aceitos: `backlog`, `reading`, `finished`.
+* `current_page` (INTEGER): página atual da leitura.
+* `started_at` (TEXT): data de início.
+* `finished_at` (TEXT): data de conclusão.
+* `notes` (TEXT): observações livres.
+* `created_at` (TEXT): data de criação do registro.
 
-## 📐 Relações entre as Classes (Análise Conceitual)
+## 🔗 Rotas da API
 
-* **Associação Direta (`Book` -> `Author` e `Publisher`)**: Um livro aponta diretamente para quem o escreveu e para a empresa que o publicou. Sem essas associações, a entidade `Book` perde sua consistência estrutural dentro deste domínio.
-* **Agregação (`User` -> `Book`)**: O usuário possui uma coleção de livros. Caso a conta do usuário seja desativada, as entidades históricas de livros, autores e editoras ainda podem existir de forma independente no banco de dados.
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| `GET` | `/health` | Verifica se a API está online. |
+| `GET` | `/api` | Retorna informações gerais da API. |
+| `GET` | `/authors` | Lista autores. |
+| `GET` | `/authors/:id` | Consulta um autor por ID. |
+| `POST` | `/authors` | Cria um autor. |
+| `PUT` | `/authors/:id` | Atualiza um autor. |
+| `DELETE` | `/authors/:id` | Remove um autor. |
+| `GET` | `/publishers` | Lista editoras. |
+| `GET` | `/publishers/:id` | Consulta uma editora por ID. |
+| `POST` | `/publishers` | Cria uma editora. |
+| `PUT` | `/publishers/:id` | Atualiza uma editora. |
+| `DELETE` | `/publishers/:id` | Remove uma editora. |
+| `GET` | `/books` | Lista livros. Aceita `authorId` e `publisherId` como filtros. |
+| `GET` | `/books/:id` | Consulta um livro por ID. |
+| `POST` | `/books` | Cria um livro. |
+| `PUT` | `/books/:id` | Atualiza um livro. |
+| `DELETE` | `/books/:id` | Remove um livro. |
+| `GET` | `/reading-trackers` | Lista acompanhamentos. Aceita `bookId` como filtro. |
+| `GET` | `/reading-trackers/:id` | Consulta um acompanhamento por ID. |
+| `POST` | `/reading-trackers` | Cria um acompanhamento. |
+| `PUT` | `/reading-trackers/:id` | Atualiza um acompanhamento. |
+| `DELETE` | `/reading-trackers/:id` | Remove um acompanhamento. |
+
+## 📦 Exemplos de requisições em JSON
+
+Execute as requisições de criação na ordem abaixo para reaproveitar os IDs nos exemplos seguintes.
+
+```json
+{
+  "baseUrl": "http://localhost:3000",
+  "requests": [
+    {
+      "name": "Health check",
+      "method": "GET",
+      "url": "/health"
+    },
+    {
+      "name": "Informações da API",
+      "method": "GET",
+      "url": "/api"
+    },
+    {
+      "name": "Criar autor",
+      "method": "POST",
+      "url": "/authors",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Machado de Assis",
+        "country": "Brasil",
+        "bio": "Autor brasileiro do Realismo."
+      }
+    },
+    {
+      "name": "Listar autores",
+      "method": "GET",
+      "url": "/authors"
+    },
+    {
+      "name": "Buscar autor por ID",
+      "method": "GET",
+      "url": "/authors/1"
+    },
+    {
+      "name": "Atualizar autor",
+      "method": "PUT",
+      "url": "/authors/1",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Machado de Assis",
+        "country": "Brasil",
+        "bio": "Romancista, contista, poeta e cronista brasileiro."
+      }
+    },
+    {
+      "name": "Criar editora",
+      "method": "POST",
+      "url": "/publishers",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Companhia das Letras",
+        "headquarters": "Sao Paulo",
+        "foundedYear": 1986
+      }
+    },
+    {
+      "name": "Listar editoras",
+      "method": "GET",
+      "url": "/publishers"
+    },
+    {
+      "name": "Buscar editora por ID",
+      "method": "GET",
+      "url": "/publishers/1"
+    },
+    {
+      "name": "Atualizar editora",
+      "method": "PUT",
+      "url": "/publishers/1",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Companhia das Letras",
+        "headquarters": "Sao Paulo",
+        "foundedYear": 1986
+      }
+    },
+    {
+      "name": "Criar livro",
+      "method": "POST",
+      "url": "/books",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "title": "Dom Casmurro",
+        "genre": "Romance",
+        "pages": 256,
+        "isbn": "9788535910663",
+        "publicationYear": 1899,
+        "authorId": 1,
+        "publisherId": 1
+      }
+    },
+    {
+      "name": "Listar livros",
+      "method": "GET",
+      "url": "/books"
+    },
+    {
+      "name": "Filtrar livros por autor",
+      "method": "GET",
+      "url": "/books?authorId=1"
+    },
+    {
+      "name": "Filtrar livros por editora",
+      "method": "GET",
+      "url": "/books?publisherId=1"
+    },
+    {
+      "name": "Buscar livro por ID",
+      "method": "GET",
+      "url": "/books/1"
+    },
+    {
+      "name": "Atualizar livro",
+      "method": "PUT",
+      "url": "/books/1",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "title": "Dom Casmurro",
+        "genre": "Romance brasileiro",
+        "pages": 256,
+        "isbn": "9788535910663",
+        "publicationYear": 1899,
+        "authorId": 1,
+        "publisherId": 1
+      }
+    },
+    {
+      "name": "Criar acompanhamento de leitura",
+      "method": "POST",
+      "url": "/reading-trackers",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "bookId": 1,
+        "status": "reading",
+        "currentPage": 80,
+        "startedAt": "2026-06-15",
+        "finishedAt": null,
+        "notes": "Leitura em andamento."
+      }
+    },
+    {
+      "name": "Listar acompanhamentos",
+      "method": "GET",
+      "url": "/reading-trackers"
+    },
+    {
+      "name": "Filtrar acompanhamentos por livro",
+      "method": "GET",
+      "url": "/reading-trackers?bookId=1"
+    },
+    {
+      "name": "Buscar acompanhamento por ID",
+      "method": "GET",
+      "url": "/reading-trackers/1"
+    },
+    {
+      "name": "Atualizar acompanhamento como finalizado",
+      "method": "PUT",
+      "url": "/reading-trackers/1",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "bookId": 1,
+        "status": "finished",
+        "currentPage": 256,
+        "startedAt": "2026-06-15",
+        "finishedAt": "2026-06-20",
+        "notes": "Livro finalizado."
+      }
+    },
+    {
+      "name": "Excluir acompanhamento",
+      "method": "DELETE",
+      "url": "/reading-trackers/1"
+    },
+    {
+      "name": "Excluir livro",
+      "method": "DELETE",
+      "url": "/books/1"
+    },
+    {
+      "name": "Excluir editora",
+      "method": "DELETE",
+      "url": "/publishers/1"
+    },
+    {
+      "name": "Excluir autor",
+      "method": "DELETE",
+      "url": "/authors/1"
+    }
+  ]
+}
+```
+
+## 📌 Regras de validação principais
+
+* `authors.name` é obrigatório.
+* `publishers.name` é obrigatório e único.
+* `books.title`, `books.genre`, `books.isbn`, `books.authorId` e `books.publisherId` são obrigatórios.
+* `books.pages` deve ser maior que zero.
+* `books.isbn` deve ser único.
+* `reading_trackers.bookId` e `reading_trackers.status` são obrigatórios.
+* `reading_trackers.status` aceita apenas `backlog`, `reading` ou `finished`.
+* Para marcar uma leitura como `finished`, `currentPage` deve ser igual ao total de páginas do livro.

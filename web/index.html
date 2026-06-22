@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Margem | Catalogo de Leitura</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Margem</p>
+          <h1>Catalogue seus livros e acompanhe cada etapa da leitura.</h1>
+          <p class="hero-copy">
+            Gerencie autores, editoras, livros e o progresso de leitura em um unico
+            painel.
+          </p>
+        </div>
+        <div id="alerta" class="alert alert-danger d-none mb-0" role="alert"></div>
+      </header>
+
+      <main class="dashboard">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Autores</h2>
+            <span class="badge text-bg-light" id="count-authors">0</span>
+          </div>
+
+          <form id="form-author" class="row g-3">
+            <div class="col-md-7">
+              <label class="form-label" for="author-name">Nome</label>
+              <input id="author-name" class="form-control" type="text" required />
+            </div>
+            <div class="col-md-5">
+              <label class="form-label" for="author-country">Pais</label>
+              <input id="author-country" class="form-control" type="text" />
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="author-bio">Biografia</label>
+              <textarea id="author-bio" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-reader w-100" type="submit">Adicionar autor</button>
+            </div>
+          </form>
+
+          <div id="list-authors" class="stack-list mt-4"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Editoras</h2>
+            <span class="badge text-bg-light" id="count-publishers">0</span>
+          </div>
+
+          <form id="form-publisher" class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="publisher-name">Nome</label>
+              <input id="publisher-name" class="form-control" type="text" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="publisher-headquarters">Sede</label>
+              <input id="publisher-headquarters" class="form-control" type="text" />
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="publisher-founded-year">Ano de fundacao</label>
+              <input id="publisher-founded-year" class="form-control" type="number" min="0" />
+            </div>
+            <div class="col-12">
+              <button class="btn btn-reader w-100" type="submit">Adicionar editora</button>
+            </div>
+          </form>
+
+          <div id="list-publishers" class="stack-list mt-4"></div>
+        </section>
+
+        <section class="panel panel-dark">
+          <div class="panel-head">
+            <h2>Livros</h2>
+            <span class="badge text-bg-warning" id="count-books">0</span>
+          </div>
+
+          <form id="form-book" class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label" for="book-title">Titulo</label>
+              <input id="book-title" class="form-control" type="text" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="book-genre">Genero</label>
+              <input id="book-genre" class="form-control" type="text" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="book-pages">Paginas</label>
+              <input id="book-pages" class="form-control" type="number" min="1" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="book-isbn">ISBN</label>
+              <input id="book-isbn" class="form-control" type="text" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="book-publication-year">Ano de publicacao</label>
+              <input id="book-publication-year" class="form-control" type="number" min="0" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="book-author">Autor</label>
+              <select id="book-author" class="form-select" required>
+                <option value="">Selecione um autor</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="book-publisher">Editora</label>
+              <select id="book-publisher" class="form-select" required>
+                <option value="">Selecione uma editora</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-reading w-100" type="submit">Adicionar livro</button>
+            </div>
+          </form>
+
+          <div id="list-books" class="stack-list mt-4"></div>
+        </section>
+
+        <section class="panel panel-dark">
+          <div class="panel-head">
+            <h2>Acompanhamento de Leitura</h2>
+            <span class="badge text-bg-warning" id="count-trackers">0</span>
+          </div>
+
+          <form id="form-tracker" class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="tracker-book">Livro</label>
+              <select id="tracker-book" class="form-select" required>
+                <option value="">Selecione um livro</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="tracker-status">Status</label>
+              <select id="tracker-status" class="form-select" required>
+                <option value="backlog">Na fila</option>
+                <option value="reading">Lendo</option>
+                <option value="finished">Concluido</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="tracker-current-page">Pagina atual</label>
+              <input
+                id="tracker-current-page"
+                class="form-control"
+                type="number"
+                min="0"
+                value="0"
+              />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="tracker-started-at">Data de inicio</label>
+              <input id="tracker-started-at" class="form-control" type="date" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="tracker-finished-at">Data de conclusao</label>
+              <input id="tracker-finished-at" class="form-control" type="date" />
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="tracker-notes">Observacoes</label>
+              <textarea id="tracker-notes" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-reading w-100" type="submit">Adicionar acompanhamento</button>
+            </div>
+          </form>
+
+          <div class="toolbar mt-4">
+            <label class="form-label mb-1" for="filter-book">Filtrar por livro</label>
+            <select id="filter-book" class="form-select">
+              <option value="">Todos os livros</option>
+            </select>
+          </div>
+
+          <div id="list-trackers" class="stack-list mt-3"></div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>

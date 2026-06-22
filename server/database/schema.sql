@@ -1,0 +1,38 @@
+CREATE TABLE IF NOT EXISTS authors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  country TEXT,
+  bio TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS publishers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  headquarters TEXT,
+  founded_year INTEGER,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS books (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  genre TEXT NOT NULL,
+  pages INTEGER NOT NULL CHECK (pages > 0),
+  isbn TEXT NOT NULL UNIQUE,
+  publication_year INTEGER,
+  author_id INTEGER NOT NULL REFERENCES authors(id) ON DELETE RESTRICT,
+  publisher_id INTEGER NOT NULL REFERENCES publishers(id) ON DELETE RESTRICT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS reading_trackers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  status TEXT NOT NULL CHECK (status IN ('backlog', 'reading', 'finished')),
+  current_page INTEGER NOT NULL DEFAULT 0 CHECK (current_page >= 0),
+  started_at TEXT,
+  finished_at TEXT,
+  notes TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
