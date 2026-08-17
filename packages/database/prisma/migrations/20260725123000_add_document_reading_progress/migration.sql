@@ -1,0 +1,1 @@
+ALTER TABLE "Document" ADD COLUMN "current_page" INTEGER NOT NULL DEFAULT 1;

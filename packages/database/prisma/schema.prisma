@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String                 @id @default(uuid())
+  email                 String                 @unique
+  name                  String?
+  password              String                 @default("")
+  created_at            DateTime               @default(now())
+  current_plan          PlanCode               @default(FREE)
+  plan_status           PlanStatus             @default(FREE)
+  plan_activated_at     DateTime?
+  plan_expires_at       DateTime?
+  documents             Document[]
+  notebooks             Notebook[]
+  billingSubscriptions  BillingSubscription[]
+  billingCheckoutSessions BillingCheckoutSession[]
+}
+
+enum PlanCode {
+  FREE
+  ESSENTIAL
+  PREMIUM
+}
+
+enum PlanStatus {
+  FREE
+  PENDING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum BillingProvider {
+  ASAAS
+}
+
+enum CheckoutStatus {
+  CREATED
+  PAID
+  EXPIRED
+  CANCELED
+}
+
+enum BillingSubscriptionStatus {
+  PENDING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+model BillingCheckoutSession {
+  id                String         @id @default(uuid())
+  user_id           String
+  user              User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  provider          BillingProvider @default(ASAAS)
+  plan              PlanCode
+  status            CheckoutStatus @default(CREATED)
+  external_id       String         @unique
+  external_reference String        @unique
+  checkout_url      String
+  amount_cents      Int
+  currency          String         @default("BRL")
+  raw_response      Json
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+}
+
+model BillingSubscription {
+  id                      String                    @id @default(uuid())
+  user_id                 String
+  user                    User                      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  provider                BillingProvider           @default(ASAAS)
+  plan                    PlanCode
+  status                  BillingSubscriptionStatus @default(PENDING)
+  external_subscription_id String?                  @unique
+  external_customer_id     String?
+  latest_payment_id        String?
+  latest_checkout_id       String?
+  current_period_start     DateTime?
+  current_period_end       DateTime?
+  activated_at             DateTime?
+  canceled_at              DateTime?
+  created_at               DateTime                 @default(now())
+  updated_at               DateTime                 @updatedAt
+
+  @@index([user_id, status])
+}
+
+model BillingWebhookEvent {
+  id             String          @id @default(uuid())
+  provider       BillingProvider @default(ASAAS)
+  external_id    String          @unique
+  event_name     String
+  payment_id     String?
+  subscription_id String?
+  processed_at   DateTime?
+  raw_payload    Json
+  created_at     DateTime        @default(now())
+}
+
+model Document {
+  id          String      @id @default(uuid())
+  user_id     String
+  user        User        @relation(fields: [user_id], references: [id])
+  title       String
+  file_path   String      @unique
+  file_size   Int
+  total_pages Int
+  current_page Int       @default(1)
+  created_at  DateTime    @default(now())
+  highlights  Highlight[]
+  notebooks   Notebook[]
+}
+
+model Highlight {
+  id             String       @id @default(uuid())
+  document_id    String
+  document       Document     @relation(fields: [document_id], references: [id], onDelete: Cascade)
+  page_number    Int
+  text_content   String
+  color_token    String
+  bounding_rects Json // Array of coordinates {x, y, w, h}
+  created_at     DateTime     @default(now())
+  margin_notes   MarginNote[]
+}
+
+model MarginNote {
+  id           String    @id @default(uuid())
+  highlight_id String    @unique
+  highlight    Highlight @relation(fields: [highlight_id], references: [id], onDelete: Cascade)
+  comment_text String
+  updated_at   DateTime  @updatedAt
+}
+
+model Notebook {
+  id           String    @id @default(uuid())
+  document_id  String?
+  document     Document? @relation(fields: [document_id], references: [id], onDelete: Cascade)
+  user_id      String
+  user         User      @relation(fields: [user_id], references: [id])
+  content_json Json // Tiptap Schema / Block structure
+  updated_at   DateTime  @updatedAt
+}

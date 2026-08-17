@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+:root {
+  --bg-main: #f8f9fa;
+  --bg-surface: #ffffff;
+  --text-primary: #1a2332;
+  --text-secondary: #64748b;
+  --border-light: #e2e8f0;
+
+  --brand-primary: #ffe066;
+  --brand-success: #2ecc71;
+  --brand-danger: #ef4444;
+
+  --highlight-yellow: #ffe066;
+  --highlight-green: #a7f3d0;
+  --highlight-blue: #bae6fd;
+  --highlight-pink: #fbcfe8;
+  --radius-brand: 6px;
+}
+
+@layer base {
+  button,
+  input,
+  select,
+  textarea,
+  article,
+  a[class*='bg-'],
+  a[class*='border'] {
+    border-radius: var(--radius-brand);
+  }
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+.margem-reader-pdf {
+  --rpv-core__inner-page-background-color: #f5f3f4;
+  --rpv-core__page-layer-box-shadow: none;
+}
+
+.margem-reader-pdf .rpv-core__inner-pages {
+  background: #f5f3f4;
+}
+
+.margem-reader-pdf .rpv-core__inner-page {
+  background: #f5f3f4;
+}
+
+.margem-reader-pdf .rpv-core__page-layer {
+  background: #ffffff;
+}
+
+.margem-reader-pdf .rpv-core__page-layer::after {
+  display: none;
+}

@@ -1,0 +1,72 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs and caches
+dist/
+**/dist/
+build/
+**/build/
+.next/
+**/.next/
+.next-build/
+**/.next-build/
+.next-reader/
+**/.next-reader/
+.turbo/
+**/.turbo/
+.cache/
+**/.cache/
+coverage/
+**/coverage/
+out/
+**/out/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Logs and diagnostics
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+debug.log
+
+# TypeScript
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+
+# Local agent/tooling state
+.codex/
+.agents/
+
+# Local tunnel/runtime files
+.ngrok2/
+ngrok.yml
+ngrok.log
+
+# Local uploads/temp files
+uploads/
+tmp/
+temp/
+*.tmp
