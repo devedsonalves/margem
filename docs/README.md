@@ -11,8 +11,8 @@ Este repositório contém o monorepo da aplicação web, da API e dos pacotes co
 O projeto é composto por quatro áreas principais:
 
 - **Web:** aplicação Next.js para landing page, autenticação, acervo, leitor e configurações.
-- **API:** servidor Express responsável por autenticação, documentos, destaques, cadernos e cobrança.
-- **Banco de dados:** schema Prisma sobre PostgreSQL, com migrations versionadas.
+- **API:** servidor NestJS responsável por autenticação, documentos, destaques, cadernos e cobrança.
+- **Banco de dados:** entities TypeORM sobre PostgreSQL, com migrations versionadas.
 - **Integrações:** armazenamento de arquivos em um serviço compatível com S3/iDrive e pagamentos recorrentes via Asaas.
 
 ### Funcionalidades
@@ -34,19 +34,18 @@ O projeto é composto por quatro áreas principais:
 ```text
 .
 ├── apps/
-│   ├── api/                    # API Express
+│   ├── api/                    # API NestJS
 │   │   └── src/
-│   │       ├── middleware/     # Autorização e autenticação
-│   │       ├── routes/         # Endpoints HTTP
-│   │       ├── services/       # Asaas, planos e storage
-│   │       └── lib/            # Clientes compartilhados, como Prisma
+│   │       ├── config/         # Validação da configuração de ambiente
+│   │       ├── infrastructure/ # Banco, HTTP, Asaas e storage
+│   │       └── modules/        # Domínios e endpoints HTTP
 │   └── web/                    # Aplicação Next.js
 │       ├── src/app/            # Rotas finas do App Router
 │       ├── src/features/       # Domínios da interface
 │       ├── src/shared/         # HTTP, token e UI compartilhada
 │       └── public/             # Assets estáticos utilizados pela aplicação
 ├── packages/
-│   ├── database/               # Prisma schema, client e migrations
+│   ├── database/               # Entities, DataSource e migrations TypeORM
 │   └── types/                  # DTOs e tipos compartilhados
 ├── docs/                       # Documentação complementar
 ├── .env.example                # Modelo seguro de configuração local
@@ -98,23 +97,26 @@ Preencha o `.env` com os valores do ambiente local. O arquivo `.env` não deve s
 
 ### 3. Configurar o banco
 
-Gere o client Prisma:
+Para uma base vazia, aplique as migrations TypeORM:
 
 ```bash
-pnpm --filter @margem/database exec prisma generate --schema prisma/schema.prisma
+pnpm db:migrate
 ```
 
-Em desenvolvimento, aplique as migrations e crie o banco conforme necessário:
+Para consultar ou reverter a última migration:
 
 ```bash
-pnpm --filter @margem/database exec prisma migrate dev --schema prisma/schema.prisma
+pnpm db:migration:show
+pnpm db:rollback
 ```
 
-Em ambientes de staging ou produção, use apenas migrations já versionadas:
+Ao migrar uma base que já usava Prisma, valide e adote o baseline uma única vez antes do primeiro deploy TypeORM:
 
 ```bash
-pnpm --filter @margem/database exec prisma migrate deploy --schema prisma/schema.prisma
+pnpm db:baseline:adopt
 ```
+
+`db:reset` é destrutivo e só aceita `NODE_ENV=development|test` com uma URL reconhecida como local/de teste. Em produção, execute `db:migrate` em uma etapa única antes de iniciar as réplicas da API; a aplicação nunca usa `synchronize`.
 
 ### 4. Iniciar o ambiente
 
@@ -146,12 +148,15 @@ O arquivo [`.env.example`](.env.example) contém um modelo completo. Nunca subst
 
 | Variável                           | Obrigatória  | Finalidade                                                                       |
 | ---------------------------------- | ------------ | -------------------------------------------------------------------------------- |
-| `DATABASE_URL`                     | Sim          | Connection string do PostgreSQL usada pelo Prisma.                               |
+| `DATABASE_URL`                     | Sim          | URL do PostgreSQL usada pelo TypeORM; com TLS, use `sslmode=verify-full`.          |
+| `TEST_DATABASE_URL`                | Para testes  | Banco PostgreSQL isolado usado nos testes de integração.                         |
+| `DB_POOL_SIZE`                     | Não          | Máximo de conexões do pool da API; padrão 10.                                    |
 | `JWT_SECRET`                       | Sim          | Segredo para assinar e validar tokens de sessão. Use um valor longo e aleatório. |
 | `PORT`                             | Não          | Porta da API. O exemplo usa `5000`; o código usa `3001` como fallback.           |
 | `APP_URL`                          | Recomendável | URL principal usada nos retornos de checkout.                                    |
 | `FRONTEND_URL`                     | Recomendável | URL pública do frontend.                                                         |
 | `NEXT_PUBLIC_API_URL`              | Sim no web   | URL da API exposta ao navegador.                                                 |
+| `CORS_ORIGINS`                     | Não          | Lista de origens permitidas, separadas por vírgula.                              |
 | `IDRIVE_E2_ACCESS_KEY_ID`          | Para uploads | Access key do storage compatível com S3.                                         |
 | `IDRIVE_E2_SECRET_ACCESS_KEY`      | Para uploads | Secret key do storage.                                                           |
 | `IDRIVE_E2_ENDPOINT`               | Para uploads | Endpoint S3 compatível do provedor.                                              |
@@ -173,12 +178,14 @@ O serviço de billing também reconhece configurações avançadas como `ASAAS_A
 
 ### Workspace
 
-| Comando       | Descrição                                                      |
-| ------------- | -------------------------------------------------------------- |
-| `pnpm dev`    | Inicia os pacotes com tarefa de desenvolvimento via Turborepo. |
-| `pnpm build`  | Compila API e web em modo de produção.                         |
-| `pnpm lint`   | Executa as tarefas de lint configuradas no workspace.          |
-| `pnpm format` | Formata arquivos TypeScript, TSX e Markdown com Prettier.      |
+| Comando          | Descrição                                                      |
+| ---------------- | -------------------------------------------------------------- |
+| `pnpm dev`       | Inicia os pacotes com tarefa de desenvolvimento via Turborepo. |
+| `pnpm build`     | Compila API e web em modo de produção.                         |
+| `pnpm lint`      | Executa as tarefas de lint configuradas no workspace.          |
+| `pnpm format`    | Formata arquivos TypeScript, TSX e Markdown com Prettier.      |
+| `pnpm typecheck` | Valida os tipos de todos os pacotes.                           |
+| `pnpm test`      | Executa todas as suítes Vitest da API.                         |
 
 ### API
 
@@ -186,6 +193,26 @@ O serviço de billing também reconhece configurações avançadas como `ASAAS_A
 pnpm --filter api dev
 pnpm --filter api build
 pnpm --filter api start
+```
+
+### Banco e testes
+
+```bash
+pnpm db:migration:create -- src/migrations/NomeDaMigration
+pnpm db:migration:generate -- src/migrations/NomeDaMigration
+pnpm db:migrate
+pnpm db:rollback
+pnpm db:migration:show
+pnpm db:baseline:adopt
+pnpm db:seed
+NODE_ENV=test pnpm db:reset
+
+pnpm test
+pnpm test:unit
+pnpm test:integration
+pnpm test:contract
+pnpm test:coverage
+pnpm test:watch
 ```
 
 ### Web
@@ -260,7 +287,7 @@ curl -X POST http://localhost:5000/documents/upload \
 
 ## Banco de dados
 
-O schema está em [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma). Entre os principais agregados estão:
+As entities estão em [`packages/database/src/entities.ts`](packages/database/src/entities.ts), o `DataSource` da CLI em [`packages/database/src/data-source.ts`](packages/database/src/data-source.ts) e as migrations em `packages/database/src/migrations`. Entre os principais agregados estão:
 
 - `User`: identidade, credenciais e estado do plano.
 - `Document`: metadados do PDF e progresso de leitura.
@@ -271,7 +298,7 @@ O schema está em [`packages/database/prisma/schema.prisma`](packages/database/p
 - `BillingSubscription`: assinaturas e ciclo de cobrança.
 - `BillingWebhookEvent`: eventos do provedor processados pela API.
 
-As migrations atuais ficam em `packages/database/prisma/migrations/` e devem ser aplicadas em ordem pelo Prisma. Não edite uma migration já aplicada; crie uma nova migration para cada alteração de schema.
+O histórico em `packages/database/prisma/migrations/` é mantido somente como referência da transição. Novas alterações devem usar migrations TypeORM. Não edite uma migration já aplicada; crie uma nova migration, revise seu SQL e mantenha `synchronize: false`.
 
 ## Convenções de desenvolvimento
 
@@ -289,6 +316,8 @@ Antes de abrir um pull request, execute:
 ```bash
 pnpm build
 pnpm lint
+pnpm typecheck
+pnpm test
 git diff --check
 ```
 

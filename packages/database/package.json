@@ -1,12 +1,30 @@
 {
   "name": "@margem/database",
   "version": "0.0.0",
-  "main": "./index.ts",
+  "main": "./dist/index.js",
   "types": "./index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typeorm": "typeorm-ts-node-commonjs -d src/data-source.ts",
+    "db:migration:create": "typeorm migration:create",
+    "db:migration:generate": "pnpm typeorm migration:generate",
+    "db:migrate": "pnpm typeorm migration:run",
+    "db:rollback": "pnpm typeorm migration:revert",
+    "db:migration:show": "pnpm typeorm migration:show",
+    "db:baseline:adopt": "ts-node src/scripts/adopt-baseline.ts",
+    "db:seed": "ts-node src/scripts/seed.ts",
+    "db:reset": "ts-node src/scripts/reset-database.ts"
+  },
   "dependencies": {
-    "@prisma/client": "^5.0.0"
+    "dotenv": "^16.3.1",
+    "pg": "^8.23.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^1.1.0"
   },
   "devDependencies": {
-    "prisma": "^5.0.0"
+    "@types/node": "^26.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

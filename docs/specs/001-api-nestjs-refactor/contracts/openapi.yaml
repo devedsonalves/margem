@@ -1,0 +1,162 @@
+openapi: 3.0.3
+info:
+  title: Margem API
+  version: 1.0.0
+  description: Contrato de compatibilidade para a migração da API para NestJS.
+servers:
+  - url: http://localhost:5000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      responses:
+        '200': { description: API disponível }
+  /auth/register:
+    post:
+      operationId: register
+      responses:
+        '200': { description: Conta criada }
+  /auth/login:
+    post:
+      operationId: login
+      responses:
+        '200': { description: Sessão criada }
+  /auth/me:
+    get:
+      operationId: getProfile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Perfil atual }
+    patch:
+      operationId: updateProfile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Perfil atualizado }
+    delete:
+      operationId: deleteAccount
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Conta excluída }
+  /auth/password:
+    patch:
+      operationId: updatePassword
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Senha atualizada }
+  /auth/export:
+    get:
+      operationId: exportAccount
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Exportação da conta }
+  /documents:
+    get:
+      operationId: listDocuments
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Documentos do usuário }
+  /documents/upload:
+    post:
+      operationId: uploadDocument
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Documento enviado }
+  /documents/{id}/url:
+    get:
+      operationId: getDocumentUrl
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { description: URL assinada }
+  /documents/{id}/progress:
+    patch:
+      operationId: updateDocumentProgress
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { description: Progresso atualizado }
+  /documents/{id}:
+    delete:
+      operationId: deleteDocument
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { description: Documento excluído }
+  /highlights/{documentId}:
+    get:
+      operationId: listHighlights
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: documentId, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { description: Destaques do documento }
+  /highlights:
+    post:
+      operationId: createHighlight
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Destaque criado }
+  /highlights/{id}:
+    delete:
+      operationId: deleteHighlight
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { description: Destaque excluído }
+  /notebooks:
+    get:
+      operationId: getNotebook
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Caderno solicitado }
+  /notebooks/{id}:
+    patch:
+      operationId: updateNotebook
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { description: Caderno atualizado }
+  /billing/plans:
+    get:
+      operationId: listPlans
+      responses:
+        '200': { description: Planos disponíveis }
+  /billing/subscription:
+    get:
+      operationId: getSubscription
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Assinatura atual }
+    delete:
+      operationId: cancelSubscription
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Assinatura cancelada }
+  /billing/checkout:
+    post:
+      operationId: createCheckout
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Checkout criado }
+  /billing/checkout-return:
+    get:
+      operationId: checkoutReturn
+      responses:
+        '302': { description: Redirecionamento ao frontend }
+  /billing/webhooks/asaas:
+    post:
+      operationId: receiveAsaasWebhook
+      responses:
+        '200': { description: Evento recebido }

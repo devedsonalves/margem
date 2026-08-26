@@ -5,7 +5,22 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "typecheck": "turbo run typecheck",
+    "test": "pnpm --filter api test",
+    "test:unit": "pnpm --filter api test:unit",
+    "test:integration": "pnpm --filter api test:integration",
+    "test:contract": "pnpm --filter api test:contract",
+    "test:watch": "pnpm --filter api test:watch",
+    "test:coverage": "pnpm --filter api test:coverage",
+    "db:migration:create": "pnpm --filter @margem/database db:migration:create",
+    "db:migration:generate": "pnpm --filter @margem/database db:migration:generate",
+    "db:migrate": "pnpm --filter @margem/database db:migrate",
+    "db:rollback": "pnpm --filter @margem/database db:rollback",
+    "db:migration:show": "pnpm --filter @margem/database db:migration:show",
+    "db:baseline:adopt": "pnpm --filter @margem/database db:baseline:adopt",
+    "db:seed": "pnpm --filter @margem/database db:seed",
+    "db:reset": "pnpm --filter @margem/database db:reset"
   },
   "devDependencies": {
     "turbo": "latest",
@@ -14,6 +29,6 @@
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
-    "node": ">=18"
+    "node": ">=20.11"
   }
 }
